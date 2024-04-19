@@ -2,48 +2,51 @@ import mongoose, {Schema} from 'mongoose';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 
-const userSchema = new Schema({
-    username: {
-        type: String,
-        required: true,
-        unique: true,
-        trim: true,
-        lowercase: true,
-        index: true
+const userSchema = new Schema(
+  {
+    userName: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      lowercase: true,
+      index: true,
     },
     email: {
-        type: String,
-        required: true,
-        unique: true,
-        trim: true,
-        lowercase: true,
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      lowercase: true,
     },
     fullName: {
-        type: String,
-        required: true,
-        index: true
+      type: String,
+      required: true,
+      index: true,
     },
     avatar: {
-        type: String,
-        required: true
+      type: String,
+      required: true,
     },
     coverImage: {
-        type: String
+      type: String,
     },
     watchHistory: [
-        {
+        { 
             type: Schema.Types.ObjectId,
-            ref: 'Video'
+            ref: "Video" 
         }
     ],
-    password : {
-        type: String,
-        required: true
+    password: {
+      type: String,
+      required: true,
     },
     refreshToken: {
-        type: String
-    }
-}, {timestamps: true})
+      type: String,
+    },
+  },
+  { timestamps: true }
+);
 
 userSchema.pre('save', async function (next) {
     if(!this.isModified('password')) return next();
