@@ -21,8 +21,11 @@ const addComment = asyncHandler(async (req, res) => {
         content,
         owner: req.user._id,
         video: videoId
-    });
-
+    })
+     const newComment = await comment.populate({
+        path: "owner",
+        select: "userName fullName avatar"
+    })
     if (!comment) throw new ApiError(500, "Failed to create comment");
 
     return res
@@ -30,7 +33,7 @@ const addComment = asyncHandler(async (req, res) => {
     .json(
         new ApiResponse(
             201,
-            comment,
+            newComment,
             "Comment created successfully"
         )
     )
@@ -44,7 +47,7 @@ const getVideoComments = asyncHandler(async (req, res) => {
     const video = await Video.findById(videoId);
     if(!video) throw new ApiError(404, "Video not found");
 
-    const comments = await Comment.find(
+    let comments = await Comment.find(
         {
             video: videoId
         },
@@ -57,6 +60,15 @@ const getVideoComments = asyncHandler(async (req, res) => {
         }
     );
     if(!comments) throw new ApiError(404, "Comments not found");
+
+     const currentUserCommentIndex = comments.findIndex(
+       (comment) => comment.owner._id.toString() === req?.user._id.toString()
+     );
+     const currentUserComment = comments.splice(currentUserCommentIndex, 1);
+
+     // Concatenate the current user's comment to the beginning of the comments array
+     comments = currentUserComment.concat(comments);
+
 
     return res
     .status(200)
