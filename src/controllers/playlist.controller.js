@@ -36,6 +36,17 @@ const getPlaylistById = asyncHandler(async (req, res) => {
     if(!isValidObjectId(playlistId)) throw new ApiError(400, "Invalid playlist id")
 
     const playlist = await Playlist.findById(playlistId)
+      .populate("owner", "userName fullName avatar")
+      .populate("videos", "thumbnail title duration views createdAt")
+      .populate({
+        path: "videos",
+        populate: {
+            path: "owner",
+            select: "userName fullName avatar"
+        }
+      })
+    
+
     if(!playlist) throw new ApiError(404, "Playlist not found")
 
     return res
@@ -192,12 +203,27 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
     )
 })
 
+const getChannelPlaylists = asyncHandler(async (req, res) => {
+  const { userName } = req.params;
+
+  const channel = await User.findOne({userName: userName});
+  if (!channel) throw new ApiError(404, "User not found");
+
+  const playlists = await Playlist.find({ owner: channel?._id });
+  if (!playlists) throw new ApiError(404, "Playlists not found");
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, playlists, "Playlists fetched successfully"));
+});
+
 export {
-    createPlaylist,
-    getPlaylistById,
-    updatePlaylist,
-    deletePlaylist,
-    addVideoToPlaylist,
-    removeVideoFromPlaylist,
-    getUserPlaylists
-}
+  createPlaylist,
+  getPlaylistById,
+  updatePlaylist,
+  deletePlaylist,
+  addVideoToPlaylist,
+  removeVideoFromPlaylist,
+  getUserPlaylists,
+  getChannelPlaylists,
+};
