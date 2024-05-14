@@ -82,7 +82,6 @@ const getVideoById = asyncHandler(async (req, res) => {
 
   if (!isValidObjectId(videoId)) throw new ApiError(400, "Invalid video id");
 
-
   const video = await Video.aggregate([
     {
       $match: {
@@ -141,25 +140,40 @@ const getVideoById = asyncHandler(async (req, res) => {
       },
     },
   ]);
-  
+
   if (!video || video.length === 0) throw new ApiError(404, "Video not found");
-  if(!video[0].isPublished) throw new ApiError(403, "Video is not published");
+  if (!video[0].isPublished) throw new ApiError(403, "Video is not published");
 
   await Video.findByIdAndUpdate(videoId, {
     $inc: { views: 1 },
   });
 
-  // TODO: add video to watch history
+
+  //remove the video from watch history which is previously being watched
+  await User.findByIdAndUpdate(req.user._id, {
+    $pull: {
+      watchHistory: {
+        video: videoId,
+      },
+    },
+  });
+
+  // add the video to watch history
+  const timestamp = new Date()
+  await User.findByIdAndUpdate(req.user._id, {
+    $push: {
+      watchHistory: {
+        video: videoId,
+        timestamp: timestamp,
+      },
+    },
+  });
+
+  
 
   return res
-  .status(200)
-  .json(
-    new ApiResponse(
-      200,
-      video[0],
-      "Video fetched successfully"
-    )
-  )
+    .status(200)
+    .json(new ApiResponse(200, video[0], "Video fetched successfully"));
 });
 
 const updateVideo = asyncHandler(async (req, res) => {
@@ -273,6 +287,7 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
         )
     )
 });
+
 
 export {
   getAllVideos,

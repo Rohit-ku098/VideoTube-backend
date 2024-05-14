@@ -8,12 +8,14 @@ import { isValidObjectId } from 'mongoose'
 const createTweet = asyncHandler(async (req, res) => {
     const { content } = req.body
 
-    if (!content) throw new ApiError(400, "Content is required")
+    if (!content?.trim()) throw new ApiError(400, "Content is required")
 
     const tweet = await Tweet.create({
         content,
         owner: req.user._id
     })
+
+    await tweet.populate("owner", "userName fullName avatar")
 
     if (!tweet) throw new ApiError(500, "Failed to create tweet")
 
@@ -29,16 +31,16 @@ const createTweet = asyncHandler(async (req, res) => {
 })
 
 const getUserTweets = asyncHandler(async (req, res) => {
-
+    const { userId } = req.params
     const tweets = await Tweet.find(
         {
-            owner: req.user._id 
+            owner: userId
         }, 
         null,
         {
             sort: { createdAt: -1 }
         }
-    )
+    ).populate("owner", "userName fullName avatar")
 
     if(!tweets) throw new ApiError(500, "Failed to fetch tweets")
 
@@ -58,7 +60,7 @@ const updateTweet = asyncHandler(async (req, res) => {
     const { content } = req.body
 
     if (!isValidObjectId(tweetId)) throw new ApiError(400, "Invalid tweet id")
-    if (!content) throw new ApiError(400, "Content is required")
+    if (!content?.trim()) throw new ApiError(400, "Content is required")
 
     const updatedTweet = await Tweet.findByIdAndUpdate(
         tweetId,
@@ -68,7 +70,7 @@ const updateTweet = asyncHandler(async (req, res) => {
         {
             new: true
         }
-    )
+    ).populate("owner", "userName fullName avatar")
 
     if(!updatedTweet) throw new ApiError(500, "Failed to update tweet")
 
@@ -103,9 +105,38 @@ const deleteTweet = asyncHandler(async (req, res) => {
     )
 })
 
+const getAllTweets = asyncHandler(async (req, res) => {
+  const { page = 1, limit = 12, query, sortBy, sortType = "asc", userId } = req.query;
+
+  const queryObject = {};
+  if (query) {
+    queryObject.content = { $regex: query, $options: "i" };
+  }
+  if (userId) {
+    queryObject.owner = userId;
+  }
+  const count = await Tweet.countDocuments(queryObject);
+  const tweets = await Tweet.find(queryObject)
+    .sort({ [sortBy]: sortType })
+    .skip((page - 1) * limit)
+    .limit(limit)
+    .populate('owner',"avatar fullName userName")
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        tweets,
+        "Tweets fetched successfully",
+      )
+    );
+
+})
 export {
     createTweet,
     getUserTweets,
     updateTweet,
-    deleteTweet
+    deleteTweet,
+    getAllTweets
 }
