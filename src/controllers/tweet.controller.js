@@ -106,7 +106,7 @@ const deleteTweet = asyncHandler(async (req, res) => {
 })
 
 const getAllTweets = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 12, query, sortBy, sortType = "asc", userId } = req.query;
+  const { page = 1, limit = 12, query, sortBy="createdAt", sortType = "desc", userId } = req.query;
 
   const queryObject = {};
   if (query) {
