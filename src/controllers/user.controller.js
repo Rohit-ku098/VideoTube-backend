@@ -116,7 +116,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
   const options = {
     httpOnly: true,
-    // secure: true, // TODO : Enable this in production
+     secure: true, // TODO : Enable this in production
     SameSite: "None",
   };
 
