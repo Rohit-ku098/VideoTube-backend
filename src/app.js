@@ -6,8 +6,8 @@ const app = express()
 
 // configurations
 app.use(cors({
-    // origin: process.env.CORS_ORIGIN ,
-    origin: ["http://localhost:5173", "https://videotube-pi.vercel.app"],
+    origin: process.env.CORS_ORIGIN ,
+    // origin: ["http://localhost:5173", ""],
     credentials: true,
 }))
 
