@@ -117,7 +117,7 @@ const loginUser = asyncHandler(async (req, res) => {
   const options = {
     httpOnly: true,
     secure: true, // TODO : Enable this in production to work with https
-    sameSite: "none", // TODO : Enable this in Development to work with http
+    sameSite: "none", 
   };
 
   return res
@@ -164,8 +164,8 @@ const logoutUser = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .clearCookie("accessToken", "", options)
-    .clearCookie("refreshToken", "", options)
+    .clearCookie("accessToken")
+    .clearCookie("refreshToken")
     .json(new ApiResponse(200, {}, "User logged out successfully"));
 });
 
