@@ -10,6 +10,7 @@ import {
 
 import { upload } from '../middlewares/multer.middleware.js';
 import { verifyJwt } from '../middlewares/auth.middleware.js';
+import { isVideoOwner } from "../middlewares/video.middleware.js";
 
 const router = Router();
 router.use(verifyJwt) // Apply verifyJWT middleware to all routes in this file
@@ -34,9 +35,9 @@ router
 router
 .route('/:videoId')
 .get(getVideoById)
-.patch(upload.single("thumbnail"),updateVideo)
-.delete(deleteVideo)
+.patch(isVideoOwner, upload.single("thumbnail"), updateVideo)
+.delete(isVideoOwner, deleteVideo)
 
-router.route("/toggle/publish/:videoId").patch(togglePublishStatus);
+router.route("/toggle/publish/:videoId").patch(isVideoOwner, togglePublishStatus);
 
 export default router

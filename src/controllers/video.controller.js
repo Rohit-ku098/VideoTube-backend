@@ -183,7 +183,7 @@ const updateVideo = asyncHandler(async (req, res) => {
   //TODO: update video details like title, description, thumbnail
   if (!isValidObjectId(videoId)) throw new ApiError(400, "Invalid video id");
   
-  const { title, description } = req.body;
+  const { title, description, isPublished } = req.body;
   const updatedFields = {};
 
   if(title && title.trim().length > 0)
@@ -191,7 +191,10 @@ const updateVideo = asyncHandler(async (req, res) => {
 
   if(description)
     updatedFields.description = description;
-    
+  
+  if(isPublished !== undefined)
+    updatedFields.isPublished = isPublished;
+  
   const video = await Video.findById(videoId);
   if (!video) throw new ApiError(404, "Video not found");
 
