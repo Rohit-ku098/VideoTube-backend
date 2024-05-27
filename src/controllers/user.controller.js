@@ -117,7 +117,7 @@ const loginUser = asyncHandler(async (req, res) => {
   const options = {
     httpOnly: true,
     secure: true, // TODO : Enable this in production to work with https
-    sameSite: "none", 
+    sameSite: "none", // TODO : Enable this in production to work on cross origin 
   };
 
   return res

@@ -20,6 +20,8 @@ const getAllVideos = asyncHandler(async (req, res) => {
     queryObject.owner = userId;
   }
 
+  queryObject.isPublished = true
+
   const count = await Video.countDocuments(queryObject);
   const videos = await Video.find(queryObject)
     .sort({ [sortBy]: sortType })
@@ -264,7 +266,7 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
     const { isPublished } = req.body;
 
     if (!isValidObjectId(videoId)) throw new ApiError(400, "Invalid video id");
-    if(!isPublished) throw new ApiError(400, "Video status is required");
+    if(!isPublished.toString()) throw new ApiError(400, "Video status is required");
 
     const video = await Video.findByIdAndUpdate(
       videoId, 
