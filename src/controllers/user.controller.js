@@ -1,11 +1,16 @@
+import fs from 'fs'
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import {
+  uploadOnCloudinary,
+  deleteImageFromCloudinary,
+} from "../utils/cloudinary.js";
 import jwt from "jsonwebtoken";
 import { User } from "../models/user.model.js";
 import { Subscription } from "../models/subsciption.model.js";
 import mongoose, { isValidObjectId } from "mongoose";
+
 const generateAccessAndRefreshTokens = async (userId) => {
   const user = await User.findById(userId);
   const accessToken = user.generateAccessToken();
@@ -249,6 +254,10 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
   if (!fullName?.trim() || !email?.trim())
     throw new ApiError(400, "Full name and email are required");
 
+  const isEmailExist = await User.findOne({ email });
+  if (isEmailExist && isEmailExist._id.toString() !== req.user._id.toString())
+    throw new ApiError(400, "Email already exists");
+  
   const user = await User.findByIdAndUpdate(
     req.user._id,
     {
@@ -260,6 +269,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
     }
   ).select("-password");
 
+  if (!user) throw new ApiError(500, "Error on updating user");
   return res
     .status(200)
     .json(new ApiResponse(200, user, "Account details updated successfully"));
@@ -274,6 +284,12 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
 
   if (!avatar.url)
     throw new ApiError(500, "Error on uploading avatar to cloudinary");
+
+  const avatarDeleteInfo = await deleteImageFromCloudinary(req.user.avatar);
+  if (!avatarDeleteInfo) {
+    fs.unlinkSync(avatarLocalPath);
+    throw new ApiError(500, "Error on deleting old avatar");
+  }
 
   const user = await User.findByIdAndUpdate(
     req.user._id,
@@ -301,6 +317,12 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
 
   if (!coverImage.url)
     throw new ApiError(500, "Error on uploading cover image to cloudinary");
+
+  const coverImageDeleteInfo = await deleteImageFromCloudinary(req.user.coverImage);
+  if (!coverImageDeleteInfo) {
+    fs.unlinkSync(coverImageLocalPath);
+    throw new ApiError(500, "Error on deleting old cover image");
+  }
 
   const user = await User.findByIdAndUpdate(
     req.user._id,
