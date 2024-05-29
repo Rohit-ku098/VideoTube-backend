@@ -17,6 +17,7 @@ import {
 
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJwt } from "../middlewares/auth.middleware.js";
+import { errorMiddleware } from "../middlewares/error.middleware.js";
 const router = Router();
 
 router.route('/register').post(
@@ -33,7 +34,7 @@ router.route('/register').post(
     registerUser
 )
 
-router.route('/login').post(loginUser)
+router.route('/login').post(loginUser, errorMiddleware)
 
 //secured routes
 router.route('/logout').post(verifyJwt, logoutUser)
@@ -49,5 +50,5 @@ router.route('/watch-history')
 .patch(verifyJwt, clearWatchHistory)
 
 router.route('/watch-history/:videoId').patch(verifyJwt, removeVideoFromWatchHistory)
-
+router.use(errorMiddleware) // Response Middleware to check if there is an error
 export default router;

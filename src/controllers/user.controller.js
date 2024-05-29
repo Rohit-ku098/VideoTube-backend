@@ -227,6 +227,12 @@ const changePassword = asyncHandler(async (req, res) => {
   if (!oldPassword || !newPassword)
     throw new ApiError(400, "Old password and new password are required");
 
+  const passwordPattern =
+    /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+  if(!passwordPattern.test(newPassword))
+    throw new ApiError(400, "Password must be at least 8 characters long and contain at least one letter, one number, and one special character");
+  
   const user = await User.findById(req.user._id);
 
   const isOldPasswordCorrect = await user.isPasswordCorrect(oldPassword);
@@ -285,11 +291,8 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
   if (!avatar.url)
     throw new ApiError(500, "Error on uploading avatar to cloudinary");
 
-  const avatarDeleteInfo = await deleteImageFromCloudinary(req.user.avatar);
-  if (!avatarDeleteInfo) {
-    fs.unlinkSync(avatarLocalPath);
-    throw new ApiError(500, "Error on deleting old avatar");
-  }
+  const avatarDeleteInfo = await deleteImageFromCloudinary(req.user?.avatar);
+ 
 
   const user = await User.findByIdAndUpdate(
     req.user._id,
@@ -318,11 +321,7 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
   if (!coverImage.url)
     throw new ApiError(500, "Error on uploading cover image to cloudinary");
 
-  const coverImageDeleteInfo = await deleteImageFromCloudinary(req.user.coverImage);
-  if (!coverImageDeleteInfo) {
-    fs.unlinkSync(coverImageLocalPath);
-    throw new ApiError(500, "Error on deleting old cover image");
-  }
+  const coverImageDeleteInfo = await deleteImageFromCloudinary(req.user?.coverImage);
 
   const user = await User.findByIdAndUpdate(
     req.user._id,

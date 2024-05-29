@@ -10,6 +10,7 @@ import {
   updatePlaylist,
 } from "../controllers/playlist.controller.js";
 import { verifyJwt } from "../middlewares/auth.middleware.js";
+import { errorMiddleware } from "../middlewares/error.middleware.js";
 
 const router = Router();
 
@@ -28,5 +29,5 @@ router.route("/remove/:videoId/:playlistId").patch(removeVideoFromPlaylist);
 
 router.route("/user/:userId").get(getUserPlaylists);
 router.route("/channel/:userName").get(getChannelPlaylists);
-
+router.use(errorMiddleware) // Response Middleware to check if there is an error
 export default router;

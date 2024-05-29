@@ -11,6 +11,7 @@ import {
 import { upload } from '../middlewares/multer.middleware.js';
 import { verifyJwt } from '../middlewares/auth.middleware.js';
 import { isVideoOwner } from "../middlewares/video.middleware.js";
+import { errorMiddleware } from "../middlewares/error.middleware.js";
 
 const router = Router();
 router.use(verifyJwt) // Apply verifyJWT middleware to all routes in this file
@@ -39,5 +40,6 @@ router
 .delete(isVideoOwner, deleteVideo)
 
 router.route("/toggle/publish/:videoId").patch(isVideoOwner, togglePublishStatus);
+router.use(errorMiddleware) // Response Middleware to check if there is an error
 
 export default router
